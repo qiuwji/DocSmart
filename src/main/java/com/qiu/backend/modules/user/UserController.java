@@ -1,6 +1,5 @@
 package com.qiu.backend.modules.user;
 
-import com.qiu.backend.common.core.Result.Result;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.web.bind.annotation.GetMapping;

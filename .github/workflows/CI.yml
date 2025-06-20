@@ -1,0 +1,22 @@
+name: CI for Spring Boot
+
+on:
+  push:
+    branches: ["main"] # 监听 main 分支的推送
+  pull_request:
+    branches: ["main"] # 监听针对 main 分支的 PR
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4 # 检出代码
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Build and Test with Maven
+        run: mvn clean package # 执行构建和测试
