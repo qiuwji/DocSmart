@@ -32,6 +32,14 @@ public class Result<T> implements Serializable {
     }
 
     /**
+     * 无data的success
+     */
+    public static Result success() {
+        return new Result<>(ResultCode.SUCCESS.getCode(),
+                ResultCode.SUCCESS.getMessage(), null);
+    }
+
+    /**
      * 失败方法 支持自定义错误码
      */
     public static <T> Result<T> failed(IErrorCode errorCode) {
@@ -44,4 +52,5 @@ public class Result<T> implements Serializable {
     public static <T> Result<T> failed(String message) {
         return new Result<>(ResultCode.FAILED.getCode(), message, null);
     }
+
 }

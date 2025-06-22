@@ -5,9 +5,20 @@ package com.qiu.backend.common.infra.cache;
  */
 public interface CacheService {
     /**
-     * 设置缓存
+     * 设置缓存 带过期时间
      */
     void set(String key, Object value, long expireSeconds);
+
+    /**
+     * 设置缓存 带过期时间，单位是int
+     */
+    void set(String key, Object value, int expireSeconds);
+
+    /**
+     * 设置缓存 不带过期时间
+     */
+    void set(String key, Object value);
+
 
     /**
      * 获取缓存

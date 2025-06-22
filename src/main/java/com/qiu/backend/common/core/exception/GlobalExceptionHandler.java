@@ -25,4 +25,14 @@ public class GlobalExceptionHandler {
     public Result<Object> handleException(Exception e) {
         return Result.failed(e.getMessage());
     }
+
+    @ExceptionHandler(value = BusinessException.class)
+    public Result<Object> handleBusinessException(BusinessException e) {
+        // 将 data 作为错误消息的一部分
+        String message = e.getErrorCode().getMessage();
+        if (e.getData() != null) {
+            message += " | 数据：" + e.getData();
+        }
+        return Result.failed(message);
+    }
 }
