@@ -1,4 +1,4 @@
-name: CI for Spring Boot
+name: CI for DocSmart
 
 on:
   push:
@@ -7,58 +7,61 @@ on:
     branches: ["main"]
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
 
     services:
       mysql:
-        image: mysql:8.0
+        image: mysql:8
         env:
-          MYSQL_ROOT_PASSWORD: 123456
-          MYSQL_DATABASE: docsmart
+          MYSQL_ROOT_PASSWORD: 123456  # 这里设置 MySQL root 密码
+          MYSQL_DATABASE: docsmart   # 自动创建数据库
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping --silent"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-
-      redis:
-        image: redis:7.0
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd="redis-cli ping"
+          --health-cmd="mysqladmin ping -uroot -proot --silent"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
 
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.0.0
+        uses: actions/checkout@v4
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
           distribution: 'temurin'
+          java-version: '17'
 
-      - name: Wait for MySQL & Redis to be ready
+      - name: Install Redis CLI and MySQL client
         run: |
-          echo ">>> Waiting for MySQL..."
-          for i in {1..30}; do
-            mysqladmin ping -h 127.0.0.1 -P 3306 --silent && break
-            sleep 2
-          done
+          sudo apt-get update
+          sudo apt-get install -y redis-tools mysql-client
 
-          echo ">>> Waiting for Redis..."
+      - name: Wait for MySQL and Redis to be ready
+        run: |
+          echo "Waiting for MySQL and Redis..."
           for i in {1..30}; do
-            if redis-cli -h 127.0.0.1 -p 6379 ping | grep -q PONG; then
+            if redis-cli ping && mysqladmin ping -h127.0.0.1 -uroot -proot --silent; then
+              echo "MySQL and Redis are ready!"
               break
             fi
             sleep 2
           done
 
-      - name: Build and Test with Maven
-        run: mvn clean package --batch-mode
+      - name: Build with Maven
+        run: mvn clean install -DskipTests
+
+      - name: Run Tests
+        run: mvn test
