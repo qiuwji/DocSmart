@@ -14,12 +14,12 @@ jobs:
       mysql:
         image: mysql:8
         env:
-          MYSQL_ROOT_PASSWORD: 123456
-          MYSQL_DATABASE: docsmart
+          MYSQL_ROOT_PASSWORD: 123456  # 这里设置 MySQL root 密码
+          MYSQL_DATABASE: docsmart   # 自动创建数据库
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -uroot -p123456 --silent"
+          --health-cmd="mysqladmin ping -uroot -proot --silent"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -34,21 +34,6 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-      minio:
-        image: minio/minio
-        env:
-          MINIO_ROOT_USER: admin
-          MINIO_ROOT_PASSWORD: admin@1234
-        ports:
-          - 9000:9000
-          - 9001:9001
-        options: >-
-          --health-cmd "curl -f http://localhost:9000/minio/health/live || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        command: server /data --console-address ":9001"
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -59,37 +44,24 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install dependencies
+      - name: Install Redis CLI and MySQL client
         run: |
           sudo apt-get update
-          sudo apt-get install -y redis-tools mysql-client curl
+          sudo apt-get install -y redis-tools mysql-client
 
-      - name: Wait for services
+      - name: Wait for MySQL and Redis to be ready
         run: |
-          echo "Waiting for services..."
+          echo "Waiting for MySQL and Redis..."
           for i in {1..30}; do
-            if redis-cli ping && \
-               mysqladmin ping -h127.0.0.1 -uroot -p123456 --silent && \
-               curl -f http://localhost:9000/minio/health/live; then
-              echo "All services ready!"
+            if redis-cli ping && mysqladmin ping -h127.0.0.1 -uroot -proot --silent; then
+              echo "MySQL and Redis are ready!"
               break
             fi
             sleep 2
           done
 
-      - name: Initialize MinIO (optional)
-        run: |
-          wget https://dl.min.io/client/mc/release/linux-amd64/mc -O mc
-          chmod +x mc
-          ./mc alias set myminio http://localhost:9000 admin admin@1234
-          ./mc mb myminio/testbucket || true  # 允许bucket已存在的情况
-
       - name: Build with Maven
         run: mvn clean install -DskipTests
 
       - name: Run Tests
-        env:
-          MINIO_ENDPOINT: http://localhost:9000
-          MINIO_ACCESS_KEY: admin
-          MINIO_SECRET_KEY: admin@1234
         run: mvn test
