@@ -67,6 +67,11 @@ public class RedisCacheService implements CacheService {
                 return null;
             }
 
+            // 处理Integer到Long的转换
+            if (clazz == Long.class && value instanceof Integer) {
+                return clazz.cast(((Integer) value).longValue());
+            }
+
             // 类型检查
             if (clazz.isAssignableFrom(value.getClass())) {
                 return clazz.cast(value);

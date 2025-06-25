@@ -14,6 +14,8 @@ public enum ResultCode implements IErrorCode {
     UNAUTHORIZED(401, "暂未登录或token已过期"),
     EMAIL_OR_PASSWORD_FAILED(401, "账号或密码错误"),
     COOLDOWN_FAILED(429, "操作处于冷却期，请稍后再试"),
+    USER_NOT_FOUND(404, "未找到该用户"),
+    RECORD_NOT_EXIST(404, "记录不存在"),
     FORBIDDEN(403, "没有相关权限");
 
     private final long code;

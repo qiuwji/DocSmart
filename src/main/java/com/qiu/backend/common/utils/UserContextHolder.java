@@ -11,4 +11,8 @@ public class UserContextHolder {
     public static Long getUserId() {
         return userThreadLocal.get();
     }
+
+    public static void clear() {
+        userThreadLocal.remove();
+    }
 }

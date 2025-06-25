@@ -3,6 +3,7 @@ package com.qiu.backend.modules.user.mapper;
 import com.qiu.backend.modules.model.entity.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 @Mapper
 public interface UserMapper {
@@ -30,4 +31,12 @@ public interface UserMapper {
 
     @Select("SELECT * FROM user WHERE email = #{email}")
     User getUserByEmail(String email);
+
+    @Select("SELECT * FROM user WHERE username = #{username}")
+    User getUserByName(String username);
+
+    @Select("SELECT * FROM user WHERE id = #{id}")
+    User getUserById(Long id);
+
+    int updateById(User user);
 }

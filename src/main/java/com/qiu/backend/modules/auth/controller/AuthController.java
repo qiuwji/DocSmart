@@ -5,7 +5,7 @@ import com.qiu.backend.modules.auth.service.AuthService;
 import com.qiu.backend.modules.model.dto.GetEmailCaptchaDTO;
 import com.qiu.backend.modules.model.dto.LoginDTO;
 import com.qiu.backend.modules.model.dto.RegistrationDTO;
-import com.qiu.backend.modules.model.result_data.LoginResponse;
+import com.qiu.backend.modules.model.vo.LoginResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

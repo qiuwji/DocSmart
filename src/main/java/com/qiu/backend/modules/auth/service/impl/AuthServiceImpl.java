@@ -16,7 +16,7 @@ import com.qiu.backend.modules.model.dto.LoginDTO;
 import com.qiu.backend.modules.model.dto.RegistrationDTO;
 import com.qiu.backend.modules.model.entity.User;
 import com.qiu.backend.modules.model.entity.UserRole;
-import com.qiu.backend.modules.model.result_data.LoginResponse;
+import com.qiu.backend.modules.model.vo.LoginResponse;
 import com.qiu.backend.modules.user.mapper.UserMapper;
 import com.qiu.backend.modules.user.service.UserRoleService;
 import com.qiu.backend.modules.user.service.UserService;
@@ -29,10 +29,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static com.qiu.backend.common.core.Result.ResultCode.*;
 import static com.qiu.backend.common.core.constant.CacheConstant.CAPTCHA_COOLDOWN_PREFIX;
 import static com.qiu.backend.common.core.constant.CacheConstant.CAPTCHA_VALID_PREFIX;
+import static com.qiu.backend.common.core.constant.UserConstant.TOKEN_VALID_PREFIX;
 
 @Service
 @Slf4j
@@ -112,7 +115,7 @@ public class AuthServiceImpl implements AuthService {
     private User generateUserFromDTO(RegistrationDTO registrationDTO) {
         User user = new User();
 
-        user.setAvatar(UserConstant.DEFAULT_AVATAR_URL);
+        user.setAvatar(UserConstant.DEFAULT_AVATAR_NAME);
         user.setEmail(registrationDTO.getEmail());
 
         // 对密码加密存储
@@ -138,7 +141,7 @@ public class AuthServiceImpl implements AuthService {
 
         userRole.setUserId(id);
         // 默认是普通用户权限
-        userRole.setRoleId(RoleConstant.USER_ROLE);
+        userRole.setRoleId(RoleConstant.USER_ROLE_ID);
 
         userRole.setCreateTime(LocalDateTime.now());
 
@@ -200,7 +203,15 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 如果登录成功能，删除key
-        loginRateLimiterService.reset(deviceId, loginDTO.getEmail());
-        return new LoginResponse(JwtUtil.generateToken(user.getId()));
+        Lock lock = new ReentrantLock();
+        lock.lock();
+        try {
+            loginRateLimiterService.reset(deviceId, loginDTO.getEmail());
+            String redisKey = TOKEN_VALID_PREFIX + user.getId();
+            cacheService.set(redisKey, user.getId(), 4 * 60 * 60);
+            return new LoginResponse(JwtUtil.generateToken(redisKey));
+        } finally {
+            lock.unlock();
+        }
     }
 }

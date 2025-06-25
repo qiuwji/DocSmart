@@ -1,4 +1,4 @@
-package com.qiu.backend.modules.model.result_data;
+package com.qiu.backend.modules.model.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

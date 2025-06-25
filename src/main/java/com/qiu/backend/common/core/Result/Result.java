@@ -34,7 +34,7 @@ public class Result<T> implements Serializable {
     /**
      * 无data的success
      */
-    public static Result success() {
+    public static Result<Void> success() {
         return new Result<>(ResultCode.SUCCESS.getCode(),
                 ResultCode.SUCCESS.getMessage(), null);
     }

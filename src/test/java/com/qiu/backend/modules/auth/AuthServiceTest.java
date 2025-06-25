@@ -14,7 +14,7 @@ import com.qiu.backend.modules.model.dto.LoginDTO;
 import com.qiu.backend.modules.model.dto.RegistrationDTO;
 import com.qiu.backend.modules.model.entity.User;
 import com.qiu.backend.modules.model.entity.UserRole;
-import com.qiu.backend.modules.model.result_data.LoginResponse;
+import com.qiu.backend.modules.model.vo.LoginResponse;
 import jakarta.servlet.http.HttpServletRequest;
 
 import com.qiu.backend.common.infra.cache.impl.RedisCacheService;
@@ -175,7 +175,7 @@ public class AuthServiceTest {
         verify(userRoleService).createUserRole(roleCaptor.capture());
         UserRole createdRole = roleCaptor.getValue();
         assertEquals(1L, createdRole.getUserId());
-        assertEquals(RoleConstant.USER_ROLE, createdRole.getRoleId());
+        assertEquals(RoleConstant.USER_ROLE_ID, createdRole.getRoleId());
 
         // 验证缓存清理
         verify(cacheService).delete("captcha:valid:test@example.com");
