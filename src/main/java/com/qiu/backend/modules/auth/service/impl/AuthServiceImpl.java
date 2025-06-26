@@ -11,9 +11,11 @@ import com.qiu.backend.common.rate.LoginRateLimiterService;
 import com.qiu.backend.common.utils.*;
 import com.qiu.backend.modules.auth.service.AuthService;
 import com.qiu.backend.modules.auth.service.MailService;
+import com.qiu.backend.modules.docs.service.FolderService;
 import com.qiu.backend.modules.model.dto.GetEmailCaptchaDTO;
 import com.qiu.backend.modules.model.dto.LoginDTO;
 import com.qiu.backend.modules.model.dto.RegistrationDTO;
+import com.qiu.backend.modules.model.entity.Folder;
 import com.qiu.backend.modules.model.entity.User;
 import com.qiu.backend.modules.model.entity.UserRole;
 import com.qiu.backend.modules.model.vo.LoginResponse;
@@ -53,16 +55,20 @@ public class AuthServiceImpl implements AuthService {
 
     private final LoginRateLimiterService loginRateLimiterService;
 
+    private final FolderService folderService;
+
     @Autowired
     public AuthServiceImpl(RedisCacheService redisCacheService, MailService mailService,
                            UserService userService, UserRoleService userRoleService,
-                           UserMapper userMapper,LoginRateLimiterService loginRateLimiterService) {
+                           UserMapper userMapper,LoginRateLimiterService loginRateLimiterService,
+                           FolderService folderService) {
         this.mailService = mailService;
         this.cacheService = redisCacheService;
         this.userService = userService;
         this.userRoleService = userRoleService;
         this.userMapper = userMapper;
         this.loginRateLimiterService = loginRateLimiterService;
+        this.folderService = folderService;
     }
 
     public void sendCode(GetEmailCaptchaDTO captchaDTO) {
@@ -171,6 +177,10 @@ public class AuthServiceImpl implements AuthService {
         userRoleService.createUserRole(userRole);
 
         cacheService.delete(captchaKey);
+
+        // 创建根目录
+        String folderName = "user" + user.getId() + "_root";
+        folderService.createFolder(user.getId(), folderName, 0L);
 
         log.info("用户注册成功: {}", user.getId());
         return "注册成功";

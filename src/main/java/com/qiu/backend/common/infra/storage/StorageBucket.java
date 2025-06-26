@@ -5,7 +5,8 @@ import lombok.Getter;
 @Getter
 public enum StorageBucket {
 
-    AVATARS("avatars");
+    AVATARS("avatars"),
+    FILES("files");
 
     private final String bucketName;
 

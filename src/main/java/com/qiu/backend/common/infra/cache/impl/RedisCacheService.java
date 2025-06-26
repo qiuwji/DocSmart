@@ -6,7 +6,9 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static com.qiu.backend.common.core.constant.CacheConstant.*;
@@ -23,8 +25,18 @@ public class RedisCacheService implements CacheService {
 
     @Override
     public void set(String key, Object value, long expireSeconds) {
+        set(key, value, expireSeconds, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void set(String key, Object value, int expireSeconds) {
+        set(key, value, (long) expireSeconds);
+    }
+
+    @Override
+    public void set(String key, Object value, long expireSeconds, TimeUnit unit) {
         if (key == null || key.isEmpty()
-            || value == null) {
+                || value == null) {
             throw new IllegalArgumentException(KEY_OR_VALUE_CANNOT_BE_EMPTY);
         }
 
@@ -32,12 +44,7 @@ public class RedisCacheService implements CacheService {
             throw new IllegalArgumentException(EXPIRED_TIME_MUST_BIGGER_THAN_ZERO);
         }
 
-        redisTemplate.opsForValue().set(key, value, expireSeconds, TimeUnit.SECONDS);
-    }
-
-    @Override
-    public void set(String key, Object value, int expireSeconds) {
-        set(key, value, (long) expireSeconds);
+        redisTemplate.opsForValue().set(key, value, expireSeconds, unit);
     }
 
     @Override
@@ -164,5 +171,12 @@ public class RedisCacheService implements CacheService {
         } catch (RedisSystemException e) {
             throw new IllegalArgumentException("键" + key + "值不是数字类型，无法递增");
         }
+    }
+
+    @Override
+    public Set<String> keys(String pattern) {
+        // 直接调用 RedisTemplate.keys，适用于小规模 key 空间
+        Set<String> keys = redisTemplate.keys(pattern);
+        return keys != null ? keys : Collections.emptySet();
     }
 }

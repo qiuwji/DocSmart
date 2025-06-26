@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qiu.backend.modules.docs.mapper.DocumentTagMapper">
+
+
+    <insert id="insertBatch">
+        INSERT INTO document_tag(document_id, tag_id, create_time) VALUES
+        <foreach collection="tagIds" item="tagId" separator=",">
+            (#{documentId}, #{tagId}, #{createTime})
+        </foreach>
+    </insert>
+
+</mapper>
