@@ -1,5 +1,6 @@
 package com.qiu.backend.modules.auth.service.impl;
 
+import com.qiu.backend.common.aop.annotation.DistributedLock;
 import com.qiu.backend.common.core.Result.ResultCode;
 import com.qiu.backend.common.core.constant.CacheConstant;
 import com.qiu.backend.common.core.constant.RoleConstant;
@@ -71,6 +72,7 @@ public class AuthServiceImpl implements AuthService {
         this.folderService = folderService;
     }
 
+    @DistributedLock(key = "#captchaDTO.email")
     public void sendCode(GetEmailCaptchaDTO captchaDTO) {
         log.info("给邮箱为{}的用户发送验证码", captchaDTO.getEmail());
 

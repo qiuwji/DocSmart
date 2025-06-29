@@ -15,6 +15,8 @@ public class Document {
 
     private String name;
 
+    private String originalFilename;
+
     private String type;
 
     private Long size;

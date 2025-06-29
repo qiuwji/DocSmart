@@ -1,5 +1,6 @@
 package com.qiu.backend.common.infra.cache;
 
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -49,6 +50,11 @@ public interface CacheService {
     boolean expire(String key, long expireSeconds);
 
     /**
+     * 设置过期时间，带时间单位
+     */
+    boolean expire(String key, long expireSeconds, TimeUnit unit);
+
+    /**
      * 获取剩余过期时间
      */
     long getExpire(String key);
@@ -69,4 +75,38 @@ public interface CacheService {
      * @return 匹配到的 key 集合
      */
     Set<String> keys(String pattern);
+
+    /*---------------------链表操作------------------------------------------*/
+    /**
+     * 向列表右侧推入元素
+     */
+    void rightPush(String key, String value);
+
+    /**
+     * 获取列表中指定范围的元素
+     */
+    List<String> range(String key, long start, long end);
+
+    /**
+     * 获取整个列表所有元素
+     */
+    default List<String> getAllFromList(String key) {
+        return range(key, 0, -1);
+    }
+
+    /**
+     * 判断某个元素是否在列表中
+     */
+    boolean listContains(String key, String value);
+
+    /**
+     * 删除列表中的指定元素
+     */
+    void removeFromList(String key, String value);
+
+    /**
+     * 获取列表长度
+     */
+    long listSize(String key);
+
 }

@@ -30,4 +30,16 @@ public class FileConstant {
     public static final String TXT_PATH = "txt";
 
     public static final String UPLOAD_IN_PROGRESS_VALUE = "pending";
+
+    /**
+     * 文件url的缓存，5min一条
+     */
+    public static final String DOCUMENT_URL_PREFIX = "storage:download:";
+
+    public static final Long DOCUMENT_URL_TTL = 5L;
+
+    /**
+     * 文件分块的更新前缀
+     */
+    public static final String DOCUMENT_CHUNK_UPLOAD_PREFIX = "storage:upload:chunk:";
 }

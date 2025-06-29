@@ -1,5 +1,6 @@
 package com.qiu.backend.common.rate;
 
+import com.qiu.backend.common.aop.annotation.DistributedLock;
 import com.qiu.backend.common.infra.cache.impl.RedisCacheService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class LoginRateLimiterService {
      * @param email 邮箱
      * @return 是否允许登录
      */
+    @DistributedLock(key = "'login_limit:' + #deviceId + ':' + #email")
     public boolean tryAcquire(String deviceId, String email) {
         String key = generateKey(deviceId, email);
 

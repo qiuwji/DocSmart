@@ -1,6 +1,12 @@
 package com.qiu.backend.common.infra.storage;
 
+import io.minio.errors.*;
+
+import java.io.IOException;
 import java.io.InputStream;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 public interface StorageService {
 
@@ -64,5 +70,22 @@ public interface StorageService {
                             String targetKey, boolean overwrite) throws Exception {
         return moveFile(bucket, sourceKey, bucket, targetKey, overwrite);
     }
+
+    /**
+     * 列出指定 bucket 下，所有 objectName 以 prefix 开头的对象
+     * @param bucketName 存储桶名称
+     * @param prefix     对象名前缀
+     * @return 对象名列表
+     * @throws Exception
+     */
+    List<String> listObjectsByPrefix(String bucketName, String prefix) throws Exception;
+
+    /**
+     * 获取对象流
+     * @param bucket 桶
+     * @param objectName 对象名
+     * @return 流
+     */
+    InputStream getObject(String bucket, String objectName) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException;
 }
 

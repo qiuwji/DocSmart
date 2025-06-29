@@ -6,9 +6,7 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.qiu.backend.common.core.constant.CacheConstant.*;
@@ -112,6 +110,11 @@ public class RedisCacheService implements CacheService {
 
     @Override
     public boolean expire(String key, long expireSeconds) {
+        return expire(key, expireSeconds, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public boolean expire(String key, long expireSeconds, TimeUnit unit) {
         if (key == null || key.isEmpty()) {
             throw new IllegalArgumentException("键不能为空");
         }
@@ -119,7 +122,7 @@ public class RedisCacheService implements CacheService {
             return Boolean.TRUE.equals(redisTemplate.persist(key)); // 移除过期时间（永久有效）
         }
         return Boolean.TRUE.equals(
-                redisTemplate.expire(key, expireSeconds, TimeUnit.SECONDS)
+                redisTemplate.expire(key, expireSeconds, unit)
         );
     }
 
@@ -178,5 +181,59 @@ public class RedisCacheService implements CacheService {
         // 直接调用 RedisTemplate.keys，适用于小规模 key 空间
         Set<String> keys = redisTemplate.keys(pattern);
         return keys != null ? keys : Collections.emptySet();
+    }
+
+    /*----------------------链表操作-------------------------------------*/
+
+    @Override
+    public void rightPush(String key, String value) {
+        if (key == null || key.isEmpty() || value == null) {
+            throw new IllegalArgumentException(KEY_OR_VALUE_CANNOT_BE_EMPTY);
+        }
+        redisTemplate.opsForList().rightPush(key, value);
+    }
+
+    @Override
+    public List<String> range(String key, long start, long end) {
+        if (key == null || key.isEmpty()) {
+            throw new IllegalArgumentException(KEY_CANNOT_BE_EMPTY);
+        }
+        List<Object> result = redisTemplate.opsForList().range(key, start, end);
+        if (result == null || result.isEmpty()) {
+            return Collections.emptyList();
+        }
+        // 强转为 String 列表（你用的是 RedisTemplate<String, Object>）
+        return result.stream()
+                .filter(Objects::nonNull)
+                .map(Object::toString)
+                .toList();
+    }
+
+    @Override
+    public boolean listContains(String key, String value) {
+        if (key == null || key.isEmpty() || value == null) {
+            throw new IllegalArgumentException(KEY_OR_VALUE_CANNOT_BE_EMPTY);
+        }
+        List<Object> result = redisTemplate.opsForList().range(key, 0, -1);
+        return result != null && result.stream()
+                .filter(Objects::nonNull)
+                .map(Object::toString)
+                .anyMatch(v -> v.equals(value));
+    }
+
+    @Override
+    public void removeFromList(String key, String value) {
+        if (key == null || key.isEmpty() || value == null) {
+            throw new IllegalArgumentException(KEY_OR_VALUE_CANNOT_BE_EMPTY);
+        }
+        redisTemplate.opsForList().remove(key, 1, value);
+    }
+
+    @Override
+    public long listSize(String key) {
+        if (key == null || key.isEmpty()) {
+            throw new IllegalArgumentException(KEY_CANNOT_BE_EMPTY);
+        }
+        return Optional.ofNullable(redisTemplate.opsForList().size(key)).orElse(0L);
     }
 }

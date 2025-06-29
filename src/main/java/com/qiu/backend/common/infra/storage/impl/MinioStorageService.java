@@ -5,14 +5,21 @@ import com.qiu.backend.common.core.exception.BusinessException;
 import com.qiu.backend.common.infra.config.MinioProperties;
 import com.qiu.backend.common.infra.storage.StorageService;
 import io.minio.*;
+import io.minio.errors.*;
 import io.minio.http.Method;
+import io.minio.messages.Item;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -205,5 +212,44 @@ public class MinioStorageService implements StorageService {
                     sourceBucket, sourceKey, targetBucket, targetKey, e);
             throw new BusinessException(ResultCode.FAILED, "文件移动失败: " + e.getMessage());
         }
+    }
+
+    @Override
+    public List<String> listObjectsByPrefix(String bucketName, String prefix) throws Exception {
+        if (!StringUtils.hasText(bucketName)) {
+            throw new IllegalArgumentException("Bucket 名称不能为空");
+        }
+        if (!StringUtils.hasText(prefix)) {
+            throw new IllegalArgumentException("Prefix 不能为空");
+        }
+        if (!minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build())) {
+            throw new BusinessException(ResultCode.FAILED, "指定的存储桶不存在");
+        }
+
+        List<String> objectNames = new ArrayList<>();
+        Iterable<Result<Item>> results = minioClient.listObjects(
+                ListObjectsArgs.builder()
+                        .bucket(bucketName)
+                        .prefix(prefix)
+                        .recursive(true)
+                        .build()
+        );
+        for (Result<Item> r : results) {
+            Item item = r.get();
+            objectNames.add(item.objectName());
+        }
+        return objectNames;
+    }
+
+    @Override
+    public InputStream getObject(String bucket, String objectName) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        if (!StringUtils.hasText(bucket) || !StringUtils.hasText(objectName)) {
+            throw new IllegalArgumentException("参数校验失败");
+        }
+
+        return minioClient.getObject(GetObjectArgs.builder()
+                .bucket(bucket)
+                .object(objectName)
+                .build());
     }
 }
